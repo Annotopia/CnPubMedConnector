@@ -44,6 +44,8 @@ class PubmedController {
 	/**
 	 * Allows only single identifiers requests: PUBMED_ID or PUBMED_CENTRAL_ID.
 	 * Multiple requests should go through the entries method.
+	 * 
+	 * http://localhost:8080/CnPubMedConnector/pubmed/entry?format=json&typeQuery=pubmedCentralId&textQuery=PMC2700002
 	 */
 	def entry = {
 		String apikey = params.apikey;

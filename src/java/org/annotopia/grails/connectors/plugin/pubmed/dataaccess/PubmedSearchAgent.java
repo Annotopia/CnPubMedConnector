@@ -42,9 +42,9 @@ public class PubmedSearchAgent {
 	private static String BASE_FETCH_URL = 
 		"http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=";
 	private static String SEARCH_PACKAGE_NAME = 
-		"org.mindinformatics.services.connector.pubmed.search";
+		"org.annotopia.grails.connectors.plugin.pubmed.search";
 	private static String FETCH_PACKAGE_NAME = 
-		"org.mindinformatics.services.connector.pubmed.fetch";
+		"org.annotopia.grails.connectors.plugin.pubmed.fetch";
 	
 	private static JAXBContext searchJaxbContext = null;
 	private static Unmarshaller searchUnmarshaller = null;
