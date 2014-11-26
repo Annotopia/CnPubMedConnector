@@ -189,8 +189,6 @@ public class PubmedArticleManagerImpl implements IPubmedArticleManager {
 			Integer pubStartMonth, Integer pubStartYear,
 			Integer pubEndMonth, Integer pubEndYear) {
 		
-		System.out.println("A2******* "+typeQuery);
-		
 		PubmedQueryTermBuilder termBuilder = new PubmedQueryTermBuilder();
 		//We are restricting the  publication types to include these
 		List<String> pubTypes = new ArrayList<String>();
@@ -201,7 +199,6 @@ public class PubmedArticleManagerImpl implements IPubmedArticleManager {
 		// TODO To be considered 
 		// termBuilder.addPublicationTypes(pubTypes);
 		if(CollectionUtils.isNotEmpty(titleAndAbstractWords)){
-			System.out.println("******* "+typeQuery);
 			if(typeQuery.equals(QUERY_TYPE_TITLE)) 
 				termBuilder.addJournalArticleTitleWords(titleAndAbstractWords);
 			else if(typeQuery.equals(QUERY_TYPE_PUBMED_IDS)) {

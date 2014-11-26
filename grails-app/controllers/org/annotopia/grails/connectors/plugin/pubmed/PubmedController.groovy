@@ -20,8 +20,9 @@
 */
 package org.annotopia.grails.connectors.plugin.pubmed
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.annotopia.grails.connectors.BaseConnectorController
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 import org.codehaus.groovy.grails.web.json.JSONArray
 import org.codehaus.groovy.grails.web.json.JSONObject
 
@@ -29,16 +30,15 @@ import org.codehaus.groovy.grails.web.json.JSONObject
 /**
 * @author Paolo Ciccarese <paolo.ciccarese@gmail.com>
 */
-class PubmedController {
+class PubmedController extends BaseConnectorController {
 
-	private static final Log logger = LogFactory.getLog(PubmedController.class);
-	
 	final def PUBMED_ID = "pubmedId";
 	final def PUBMED_IDS = "pubmedIds";
 	final def PUBMED_CENTRAL_ID = "pubmedCentralId";
 	final def PUBMED_CENTRAL_IDS = "pubmedCentralIds";
 	
 	def jsonPubmedAccessService;
+	def apiKeyAuthenticationService;
 	
 	// TODO Exception management
 	/**
@@ -46,13 +46,30 @@ class PubmedController {
 	 * Multiple requests should go through the entries method.
 	 * 
 	 * http://localhost:8080/CnPubMedConnector/pubmed/entry?format=json&typeQuery=pubmedCentralId&textQuery=PMC2700002
+	 * curl -i -X GET http://localhost:8090/cn/pubmed/entry -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"pubmedCentralId","textQuery":"PMC2700002"}'
 	 */
 	def entry = {
-		String apikey = params.apikey;
-		String typeQuery = params.typeQuery;
-		String textQuery = params.textQuery;
+		long startTime = System.currentTimeMillis();
 		
-		logger.info("PubMed entry request typeQuery: " + typeQuery + " | textQuery: "+ textQuery);
+		// retrieve the API key
+		def apiKey = retrieveApiKey(startTime);
+		if(!apiKey) {
+			return;
+		}
+		
+		def typeQuery = retrieveValue(request.JSON.typeQuery, params.typeQuery,
+			"typeQuery", startTime);
+		if(!typeQuery) {
+			return;
+		}
+		
+		def textQuery = retrieveValue(request.JSON.textQuery, params.textQuery,
+			"textQuery", startTime);
+		if(!textQuery) {
+			return;
+		}
+		
+		log.info("PubMed entry request typeQuery: " + typeQuery + " | textQuery: "+ textQuery);
 		
 		JSONArray json = new JSONArray();
 		if(typeQuery.trim().equals(PUBMED_ID)) {			
@@ -67,10 +84,9 @@ class PubmedController {
 				ids.add(st.nextToken());
 			}
 			json = jsonPubmedAccessService.searchPubmedArticles(typeQuery, ids);
-			println json;
 			render(contentType:'text/json', text: json.toString());
 		} else {
-			logger.warn("entry() cannot execute a query of type: " + typeQuery);
+			log.warn("entry() cannot execute a query of type: " + typeQuery);
 			render(contentType:'text/json', text: new JSONArray());
 		}
 	}
@@ -78,25 +94,52 @@ class PubmedController {
 	/**
 	 * Returns the PubMed json records for the entries identified by the PubMed  
 	 * comma separated ids in the textQuery.
+	 * 
+	 * curl -i -X GET http://localhost:8090/cn/pubmed/entries -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"pubmedIds","textQuery":"25093072"}'
+	 * curl -i -X GET http://localhost:8090/cn/pubmed/entries -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"pubmedCentralId","textQuery":"PMC2700002"}'
 	 */
 	def entries = {	
-		String apikey = params.apikey;
-		String typeQuery = params.typeQuery;
-		String textQuery = params.textQuery;
+		long startTime = System.currentTimeMillis();
 		
-		logger.info("PubMed entries request typeQuery: " + typeQuery + " | textQuery: "+ textQuery);
-		println "PubmedController.entries request typeQuery: " + typeQuery + " | textQuery: "+ textQuery;
+		// retrieve the API key
+		def apiKey = retrieveApiKey(startTime);
+		if(!apiKey) {
+			return;
+		}
 		
+		def typeQuery = retrieveValue(request.JSON.typeQuery, params.typeQuery,
+			"typeQuery", startTime);
+		if(!typeQuery) {
+			return;
+		}
+		
+		def textQuery = retrieveValue(request.JSON.textQuery, params.textQuery,
+			"textQuery", startTime);
+		if(!textQuery) {
+			return;
+		}
+		
+		log.info("PubMed entries request typeQuery: " + typeQuery + " | textQuery: "+ textQuery);
+		
+		JSONArray json = new JSONArray();
 		if(typeQuery.equals(PUBMED_IDS)) {
 			StringTokenizer st = new StringTokenizer(textQuery, ",");
 			List<String> pmids = new ArrayList<String>();
 			while(st.hasMoreTokens()) {
 				pmids.add(st.nextToken())
 			}
-			JSONArray json = jsonPubmedAccessService.getPubmedArticles(pmids);
+			json = jsonPubmedAccessService.getPubmedArticles(pmids);
 			render(contentType:'text/json', text: json.toString())
+		} else if(typeQuery.trim().equals(PUBMED_CENTRAL_ID)) {
+			StringTokenizer st = new StringTokenizer(textQuery,",");
+			List<String> ids = new ArrayList<String>();
+			while (st.hasMoreTokens()) {
+				ids.add(st.nextToken());
+			}
+			json = jsonPubmedAccessService.searchPubmedArticles(typeQuery, ids);
+			render(contentType:'text/json', text: json.toString());
 		} else {
-			logger.warn("entries() cannot execute a query of type: " + typeQuery);
+			log.warn("entries() cannot execute a query of type: " + typeQuery);
 			render(contentType:'text/json', text: new JSONArray());
 		}
 	}
@@ -121,7 +164,7 @@ class PubmedController {
 		int maxResults = (params.maxResults!=null) ? Integer.parseInt(params.maxResults) : -1;
 		int offset = (params.offset!=null) ? Integer.parseInt(params.offset) : -1;
 		
-		logger.info("PubMed search request typeQuery: " + typeQuery + " | textQuery: "+ textQuery + " | maxResults: " + maxResults+ " | offset: " + offset);
+		log.info("PubMed search request typeQuery: " + typeQuery + " | textQuery: "+ textQuery + " | maxResults: " + maxResults+ " | offset: " + offset);
 		
 		StringTokenizer st = new StringTokenizer(textQuery, ",");
 		List<String> queryTerms = new ArrayList<String>();
