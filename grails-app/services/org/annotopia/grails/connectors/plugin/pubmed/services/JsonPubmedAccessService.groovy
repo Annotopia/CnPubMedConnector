@@ -22,22 +22,19 @@ package org.annotopia.grails.connectors.plugin.pubmed.services
 
 
 
-import java.util.List;
-import java.util.Map;
-
-import org.codehaus.groovy.grails.web.json.JSONArray
-import org.codehaus.groovy.grails.web.json.JSONObject
-import org.json.simple.JSONValue
+import org.annotopia.grails.connectors.IBibliographyService
 import org.annotopia.grails.connectors.plugin.pubmed.dataaccess.ExternalPubmedArticle
 import org.annotopia.grails.connectors.plugin.pubmed.dataaccess.IPubmedArticleManager
 import org.annotopia.grails.connectors.plugin.pubmed.dataaccess.PubmedArticleManagerImpl
 import org.annotopia.grails.connectors.plugin.pubmed.dataaccess.ExternalPubmedArticle.ExternalAuthor
 import org.annotopia.grails.connectors.plugin.pubmed.fetch.PublicationType
+import org.codehaus.groovy.grails.web.json.JSONArray
+import org.codehaus.groovy.grails.web.json.JSONObject
 
 /**
 * @author Paolo Ciccarese <paolo.ciccarese@gmail.com>
 */
-class JsonPubmedAccessService {
+class JsonPubmedAccessService implements IBibliographyService {
 
 	static transactional = true;
 	
