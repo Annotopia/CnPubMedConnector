@@ -10,10 +10,11 @@ class CnPubMedConnectorGrailsPlugin {
 
     // TODO Fill in these fields
     def title = "Cn PubMed Connector Plugin" // Headline display name of the plugin
+	def service = "JsonPubmedAccessServic"
     def author = "Dr. Paolo Ciccarese"
     def authorEmail = "paolo.ciccarese@gmail.com"
     def description = '''\
-Cn PubMed Connector Plugin.
+PubMed Connector Plugin.
 '''
 
     // URL to the plugin's documentation
