@@ -99,7 +99,6 @@ public class PubmedArticleManagerImpl implements IPubmedArticleManager {
 			Integer pubEndMonth, Integer pubEndYear,
 			Integer range, Integer offset) {
 		
-		System.out.println("A1******* "+typeQuery);
 		PubmedQueryTermBuilder termBuilder = new PubmedQueryTermBuilder();
 		// We are restricting the  publication types to a restricted list
 		// This restriction might be reconsidered
@@ -109,7 +108,6 @@ public class PubmedArticleManagerImpl implements IPubmedArticleManager {
 		}
 
 		if(CollectionUtils.isNotEmpty(queryTerms)) {
-			System.out.println("******* "+typeQuery);
 			if(typeQuery.equals(QUERY_TYPE_TITLE)) {
 				termBuilder.addJournalArticleTitleWords(queryTerms);
 			} else if(typeQuery.equals(QUERY_TYPE_PUBMED_IDS)) {

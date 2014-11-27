@@ -144,10 +144,31 @@ class PubmedController extends BaseConnectorController {
 		}
 	}
 	
+	/**
+	 * curl -i -X GET http://localhost:8090/cn/pubmed/search -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"title","textQuery":"Annotation Web 3.0"}'
+	 * curl -i -X GET http://localhost:8090/cn/pubmed/search -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"title","textQuery":"Annotation","maxResults":"2","offset":"0"}'
+	 * curl -i -X GET http://localhost:8090/cn/pubmed/search -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"title","textQuery":"Annotation"}'
+	 */
 	def search = {
-		String apikey = params.apikey;
-		String typeQuery = params.typeQuery;
-		String textQuery = params.textQuery;
+		long startTime = System.currentTimeMillis();
+		
+		// retrieve the API key
+		def apiKey = retrieveApiKey(startTime);
+		if(!apiKey) {
+			return;
+		}
+		
+		def typeQuery = retrieveValue(request.JSON.typeQuery, params.typeQuery,
+			"typeQuery", startTime);
+		if(!typeQuery) {
+			return;
+		}
+		
+		def textQuery = retrieveValue(request.JSON.textQuery, params.textQuery,
+			"textQuery", startTime);
+		if(!textQuery) {
+			return;
+		}
 		
 		if(textQuery==null) { // If text query is empty return empty results list
 			render(contentType:'text/json', text: '{"total":"0","results":[],"exception":"Text query is empty"}');
@@ -156,13 +177,13 @@ class PubmedController extends BaseConnectorController {
 			textQuery = textQuery.trim();
 		}
 
-		int startMonth = (params.startMonth!=null) ? Integer.parseInt(params.startMonth) : -1;
-		int startYear = (params.startYear!=null) ? Integer.parseInt(params.startYear) : -1;
-		int endMonth = (params.endMonth!=null) ? Integer.parseInt(params.endMonth) : -1;
-		int endYear = (params.endYear!=null) ? Integer.parseInt(params.endYear) : -1;
+		int startMonth = Integer.parseInt(retrieveValue(request.JSON.type, params.type, "-1"));
+		int startYear = Integer.parseInt(retrieveValue(request.JSON.type, params.type, "-1"));
+		int endMonth = Integer.parseInt(retrieveValue(request.JSON.type, params.type, "-1"));
+		int endYear = Integer.parseInt(retrieveValue(request.JSON.type, params.type, "-1"));
 		
-		int maxResults = (params.maxResults!=null) ? Integer.parseInt(params.maxResults) : -1;
-		int offset = (params.offset!=null) ? Integer.parseInt(params.offset) : -1;
+		int maxResults = Integer.parseInt(retrieveValue(request.JSON.maxResults, params.maxResults, "-1"));
+		int offset = Integer.parseInt(retrieveValue(request.JSON.offset, params.offset, "-1"));
 		
 		log.info("PubMed search request typeQuery: " + typeQuery + " | textQuery: "+ textQuery + " | maxResults: " + maxResults+ " | offset: " + offset);
 		
