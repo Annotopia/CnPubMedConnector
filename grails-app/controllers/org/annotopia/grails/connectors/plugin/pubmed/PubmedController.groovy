@@ -36,6 +36,7 @@ class PubmedController extends BaseConnectorController {
 	final def PUBMED_IDS = "pubmedIds";
 	final def PUBMED_CENTRAL_ID = "pubmedCentralId";
 	final def PUBMED_CENTRAL_IDS = "pubmedCentralIds";
+	final def DOIS = "dois";
 	
 	def jsonPubmedAccessService;
 	def apiKeyAuthenticationService;
@@ -77,7 +78,7 @@ class PubmedController extends BaseConnectorController {
 			if(jsonObject!=null) json.add(jsonObject);
 			else log.warn "No record returned for PubMed id: " + textQuery;
 			render(contentType:'text/json', text: json.toString())
-		} else if(typeQuery.trim().equals(PUBMED_CENTRAL_ID)) {
+		} else if(typeQuery.trim().equals(PUBMED_CENTRAL_ID) || typeQuery.trim().equals(DOIS)) {
 			StringTokenizer st = new StringTokenizer(textQuery,",");
 			List<String> ids = new ArrayList<String>();
 			while (st.hasMoreTokens()) {
