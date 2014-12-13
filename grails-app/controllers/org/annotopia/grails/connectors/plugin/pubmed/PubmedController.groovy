@@ -48,6 +48,7 @@ class PubmedController extends BaseConnectorController {
 	 * 
 	 * http://localhost:8080/CnPubMedConnector/pubmed/entry?format=json&typeQuery=pubmedCentralId&textQuery=PMC2700002
 	 * curl -i -X GET http://localhost:8090/cn/pubmed/entry -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"pubmedCentralId","textQuery":"PMC2700002"}'
+	 * curl -i -X GET http://localhost:8090/cn/pubmed/entry -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"dois","textQuery":"10.1016/j.nbd.2007.04.009"}'
 	 */
 	def entry = {
 		long startTime = System.currentTimeMillis();
