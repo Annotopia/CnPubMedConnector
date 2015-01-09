@@ -194,30 +194,34 @@ class JsonPubmedAccessService implements IBibliographyService {
 		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.domeo.proxy.ip.isEmpty()?"":grailsApplication.config.domeo.proxy.ip), 
 			(grailsApplication.config.domeo.proxy.port.isEmpty()?"":grailsApplication.config.domeo.proxy.port));
 		List<ExternalPubmedArticle> epas = pa.getPubmedArticles(typeQuery, textQuery, new Integer(1), new Integer(1900), new Integer(DEFAULT_END_MONTH), new Integer(DEFAULT_END_YEAR));
-		JSONArray pas = new JSONArray();
-		for(ExternalPubmedArticle epa: epas) {
-			pas.add(convertExternalPubmedArticle(epa));
-		}
 		
-		JSONArray toReturn = new JSONArray();
-		if(typeQuery.equals("pubmedIds")) {
-			for(String id: textQuery) {
-				if(id.equals("UNRECOGNIZED")) {
-					toReturn.add("UNRECOGNIZED");
-				} else {
-					for(JSONObject publication: pas) {
-						if(publication.get("authoritativeId").equals(id)) {
-							toReturn.add(publication);
-							break;
+		JSONArray pas = new JSONArray();
+		
+		if(epas!=null) {
+			for(ExternalPubmedArticle epa: epas) {
+				pas.add(convertExternalPubmedArticle(epa));
+			}
+			
+			JSONArray toReturn = new JSONArray();
+			if(typeQuery.equals("pubmedIds")) {
+				for(String id: textQuery) {
+					if(id.equals("UNRECOGNIZED")) {
+						toReturn.add("UNRECOGNIZED");
+					} else {
+						for(JSONObject publication: pas) {
+							if(publication.get("authoritativeId").equals(id)) {
+								toReturn.add(publication);
+								break;
+							}
 						}
 					}
 				}
+			} else {
+				return pas;
 			}
-		} else {
-			return pas;
 		}
 		
-		return
+		return pas;
 	}
 	
 	/**
