@@ -49,7 +49,7 @@ class JsonPubmedAccessService implements IBibliographyService {
 	public static final int DEFAULT_MAX_RESULTS = 90;
 	public static final int DEFAULT_OFFSET = 0;
 	
-	// grailsApplication.config.domeo.proxy.ip!=null && grailsApplication.config.domeo.proxy.port
+	// grailsApplication.config.annotopia.server.proxy.host!=null && grailsApplication.config.annotopia.server.proxy.port
 	 	
 	/**
 	 * Return the json representation of the metadata record of a PubMed
@@ -58,9 +58,9 @@ class JsonPubmedAccessService implements IBibliographyService {
 	 * @return The json metadata record of a PubMed article entry
 	 */
 	public JSONObject getPubmedArticle(String pmid) {
-		log.info("proxy: " + grailsApplication.config.domeo.proxy.ip + "-" + grailsApplication.config.domeo.proxy.port) ;
-		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.domeo.proxy.ip.isEmpty()?"":grailsApplication.config.domeo.proxy.ip), 
-			(grailsApplication.config.domeo.proxy.port.isEmpty()?"":grailsApplication.config.domeo.proxy.port));
+		log.info("proxy: " + grailsApplication.config.annotopia.server.proxy.host + "-" + grailsApplication.config.annotopia.server.proxy.port) ;
+		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.annotopia.server.proxy.host.isEmpty()?"":grailsApplication.config.annotopia.server.proxy.host), 
+			(grailsApplication.config.annotopia.server.proxy.port.isEmpty()?"":grailsApplication.config.annotopia.server.proxy.port));
 		
 		ExternalPubmedArticle xpa = pa.getPubmedArticle(pmid);
 		return convertExternalPubmedArticle(xpa);
@@ -74,9 +74,9 @@ class JsonPubmedAccessService implements IBibliographyService {
 	 * @return The json metadata record of the PubMed article entries
 	 */
 	public JSONArray getPubmedArticles(List<String> pmids) {
-		log.info("proxy: " + grailsApplication.config.domeo.proxy.ip + "-" + grailsApplication.config.domeo.proxy.port) ;
-		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.domeo.proxy.ip.isEmpty()?"":grailsApplication.config.domeo.proxy.ip), 
-			(grailsApplication.config.domeo.proxy.port.isEmpty()?"":grailsApplication.config.domeo.proxy.port));
+		log.info("proxy: " + grailsApplication.config.annotopia.server.proxy.host + "-" + grailsApplication.config.annotopia.server.proxy.port) ;
+		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.annotopia.server.proxy.host.isEmpty()?"":grailsApplication.config.annotopia.server.proxy.host), 
+			(grailsApplication.config.annotopia.server.proxy.port.isEmpty()?"":grailsApplication.config.annotopia.server.proxy.port));
         JSONArray pas = new JSONArray();
         
         try {
@@ -135,9 +135,9 @@ class JsonPubmedAccessService implements IBibliographyService {
 			int startMonth, int startYear, int endMonth, int endYear,
 			int range, int offset) {
 			
-		log.info("proxy: " + grailsApplication.config.domeo.proxy.ip + "-" + grailsApplication.config.domeo.proxy.port) ;
-		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.domeo.proxy.ip.isEmpty()?"":grailsApplication.config.domeo.proxy.ip), 
-			(grailsApplication.config.domeo.proxy.port.isEmpty()?"":grailsApplication.config.domeo.proxy.port));
+		log.info("proxy: " + grailsApplication.config.annotopia.server.proxy.host + "-" + grailsApplication.config.annotopia.server.proxy.port) ;
+		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.annotopia.server.proxy.host.isEmpty()?"":grailsApplication.config.annotopia.server.proxy.host), 
+			(grailsApplication.config.annotopia.server.proxy.port.isEmpty()?"":grailsApplication.config.annotopia.server.proxy.port));
 		Map<Map<String,String>, List<ExternalPubmedArticle>> epas;
 		if(startMonth>0 && endMonth>0 && startYear>=1900 && endYear>=1900 && startYear<=endYear) {
 			epas = pa.searchPubmedArticles(typeQuery, queryTerms, 
@@ -190,9 +190,9 @@ class JsonPubmedAccessService implements IBibliographyService {
 	 * @return
 	 */
 	private JSONArray searchPubmedArticles(String typeQuery, List<String> textQuery) {
-		log.info("proxy: " + grailsApplication.config.domeo.proxy.ip + "-" + grailsApplication.config.domeo.proxy.port) ;
-		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.domeo.proxy.ip.isEmpty()?"":grailsApplication.config.domeo.proxy.ip), 
-			(grailsApplication.config.domeo.proxy.port.isEmpty()?"":grailsApplication.config.domeo.proxy.port));
+		log.info("proxy: " + grailsApplication.config.annotopia.server.proxy.host + "-" + grailsApplication.config.annotopia.server.proxy.port) ;
+		IPubmedArticleManager pa = new PubmedArticleManagerImpl((grailsApplication.config.annotopia.server.proxy.host.isEmpty()?"":grailsApplication.config.annotopia.server.proxy.host), 
+			(grailsApplication.config.annotopia.server.proxy.port.isEmpty()?"":grailsApplication.config.annotopia.server.proxy.port));
 		List<ExternalPubmedArticle> epas = pa.getPubmedArticles(typeQuery, textQuery, new Integer(1), new Integer(1900), new Integer(DEFAULT_END_MONTH), new Integer(DEFAULT_END_YEAR));
 		
 		JSONArray pas = new JSONArray();
