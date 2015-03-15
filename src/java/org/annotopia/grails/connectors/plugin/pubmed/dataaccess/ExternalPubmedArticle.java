@@ -4,17 +4,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.ArticleId;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.Author;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.MeshHeading;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.Pagination;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.PubDate;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.PublicationType;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.PubmedArticle;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.QualifierName;
-import org.apache.commons.beanutils.BeanUtils;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.ArticleId;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.Author;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.Day;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.ForeName;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.Initials;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.LastName;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.MedlineDate;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.MeshHeading;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.Month;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.PubDate;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.PublicationType;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.PubmedArticle;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.QualifierName;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.Suffix;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.Year;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 
 
 public class ExternalPubmedArticle implements PublicationI {
@@ -46,8 +51,6 @@ public class ExternalPubmedArticle implements PublicationI {
 		return null;
 	}
 	
-	
-	
 	public class ExternalAuthor{
 		private Author theAuthor;
 		ExternalAuthor(Author anAuthor){
@@ -70,34 +73,41 @@ public class ExternalPubmedArticle implements PublicationI {
 		}
 		
 		public String getForname(){
-			if (theAuthor.getForeName() == null){
-				return null;
-			}
-			return theAuthor.getForeName().getContent();
+		    List<java.lang.Object> boh = theAuthor.getLastNameOrForeNameOrInitialsOrSuffixOrCollectiveName();
+		    for(Object o: boh) {
+		        if(o instanceof ForeName) {
+		            return ((ForeName)o).getvalue().toString();
+		        }
+		    }
+		    return null;
 		}
 		public String getSurname(){
-			if (theAuthor.getLastName() == null){
-				return null;
-			}
-			return theAuthor.getLastName().getContent();
+		    List<java.lang.Object> boh = theAuthor.getLastNameOrForeNameOrInitialsOrSuffixOrCollectiveName();
+            for(Object o: boh) {
+                if(o instanceof LastName) {
+                    return ((LastName)o).getvalue().toString();
+                }
+            }
+            return null;
 		}
 		public String getInitials(){
-			if (theAuthor.getInitials() == null){
-				return null;
-			}
-			return theAuthor.getInitials().getContent();
+		    List<java.lang.Object> boh = theAuthor.getLastNameOrForeNameOrInitialsOrSuffixOrCollectiveName();
+            for(Object o: boh) {
+                if(o instanceof Initials) {
+                    return ((Initials)o).getvalue().toString();
+                }
+            }
+            return null;
 		}
-		public String getMiddlename(){
-			if (theAuthor.getMiddleName() == null){
-				return this.getFirstAndMiddle()[1];
-			}
-			return theAuthor.getMiddleName().getContent();
-		}
+
 		public String getSuffix(){
-			if(theAuthor.getSuffix() == null){
-				return null;
-			}
-			return theAuthor.getSuffix().getContent();
+		    List<java.lang.Object> boh = theAuthor.getLastNameOrForeNameOrInitialsOrSuffixOrCollectiveName();
+            for(Object o: boh) {
+                if(o instanceof Suffix) {
+                    return ((Suffix)o).getvalue().toString();
+                }
+            }
+            return null;
 		}
 		public String getFullname(){
 			StringBuilder builder = new StringBuilder();
@@ -116,10 +126,12 @@ public class ExternalPubmedArticle implements PublicationI {
 			return builder.toString();
 		}
 	}
+	
+	
 	//getAuthoredBy_asPerson()
 	public String getAuthoritativeId(){
 		try {
-			return article.getMedlineCitation().getPMID().getContent();
+			return article.getMedlineCitation().getPMID().getvalue();
 		}catch(NullPointerException e){
 			return null;
 		}
@@ -136,7 +148,7 @@ public class ExternalPubmedArticle implements PublicationI {
 		List<ArticleId> articleIds =  article.getPubmedData().getArticleIdList().getArticleId();
 		for(ArticleId articleId : articleIds){
 			if (articleId.getIdType().equals("doi")){
-				return articleId.getContent();
+				return articleId.getvalue();
 			}
 		}
 		return null;
@@ -146,12 +158,13 @@ public class ExternalPubmedArticle implements PublicationI {
 		for(ArticleId articleId : articleIds){
 			//System.out.println("type: " + articleId.getIdType());
 			if (articleId.getIdType().equals("pmc")){
-				return articleId.getContent();
+				return articleId.getvalue();
 			}
 		}
 		return null;
 	}
 	//getEnteredBy()
+	
 	public List<ExternalAuthor> getHasAuthors(){
 		List<Author> authors = null;
 		try {
@@ -160,17 +173,20 @@ public class ExternalPubmedArticle implements PublicationI {
 			authors = new ArrayList<Author>();
 		}
 		List<ExternalAuthor> returnList = new ArrayList<ExternalAuthor>();
+		System.out.println(returnList.size());
 		for(Author currentAuthor : authors){
-			//Case where we have authors that are not people. Can't handle this yet
-			if (currentAuthor.getLastName() == null && currentAuthor.getInitials() == null){
-				continue;
-			}
+//			if (currentAuthor.getLastName() == null && currentAuthor.getInitials() == null){
+//				continue;
+//			}
 			returnList.add(new ExternalAuthor(currentAuthor));
 		}
 		return returnList;
 		
 	}
+	/*
 	public String getCreationDate(){return null;}
+	*/
+	@Override
 	public String getAuthorNamesString(){
 		StringBuilder builder = new StringBuilder();
 		String separator = ", ";
@@ -190,32 +206,37 @@ public class ExternalPubmedArticle implements PublicationI {
 		}
 		return builder.toString();
 	}
+	
 	//public String getImportDate(){return null;}
 	public String getISSN(){
 		try {
-		return article.getMedlineCitation().getArticle().getJournal().getISSN().getContent();
+		return article.getMedlineCitation().getArticle().getJournal().getISSN().getvalue();
 		} catch(NullPointerException e){
 			return null;
 		}
 	}
+	
 	public String getIssue(){
 		try{
-			return article.getMedlineCitation().getArticle().getJournal().getJournalIssue().getIssue().getContent();
+			return article.getMedlineCitation().getArticle().getJournal().getJournalIssue().getIssue();
 		}catch(NullPointerException e){
 			return null;
 		}
 	}
+	
 	public String getJournalName(){
 		try{
-			return article.getMedlineCitation().getArticle().getJournal().getTitle().getContent();
+			return article.getMedlineCitation().getArticle().getJournal().getTitle();
 		}catch(NullPointerException e){
 			return null;
 		}
 	}
+	/*
 	public String getLocation(){
 		return null;
 	}
 
+	/*
 	public String getPagination(){
 		try {
 			Pagination pagination = article.getMedlineCitation().getArticle().getPagination();
@@ -223,7 +244,7 @@ public class ExternalPubmedArticle implements PublicationI {
 				return null;
 			}
 			StringBuilder builder = new StringBuilder();
-			for(Object currentPagination : pagination.getContent()){
+			for(Object currentPagination : pagination.getvalue()){
 				builder.append(BeanUtils.getProperty(currentPagination, "content"));
 				builder.append(",");
 			}
@@ -236,6 +257,7 @@ public class ExternalPubmedArticle implements PublicationI {
 			throw new RuntimeException(e);
 		}
 	}
+	*/
 
 	
 	/**
@@ -252,6 +274,7 @@ public class ExternalPubmedArticle implements PublicationI {
 		}
 		return pubDate;
 	}
+	/*
 	public Integer getPublicationDay(){
 		PubDate pubDate = this.getPubDate();
 		if (pubDate.getDay() != null){
@@ -310,11 +333,14 @@ public class ExternalPubmedArticle implements PublicationI {
 		}
 		return null;
 	}
+	*/
 	
 	private PubDate getPubDate(){
 		return article.getMedlineCitation().getArticle().getJournal().getJournalIssue().getPubDate();
 		
 	}
+	
+	 @Override
 	public String getPublicationDateString(){
 		StringBuilder builder = new StringBuilder();
 		PubDate pubDate = null;
@@ -326,25 +352,26 @@ public class ExternalPubmedArticle implements PublicationI {
 		if (pubDate == null){
 			return "no pub date available";
 		}
-		if (pubDate.getMedlineDate() != null){
-			return pubDate.getMedlineDate().getContent();
-		}
-		if (pubDate.getYear() != null){
-			builder.append(pubDate.getYear().getContent());
-			builder.append(" ");
-		}
-		
-		if (pubDate.getMonth() != null){
-			builder.append(pubDate.getMonth().getContent());
-			builder.append(" ");
-		}
-		if (pubDate.getDay() != null){
-			builder.append(pubDate.getDay().getContent());
-			builder.append(" ");
+		List<Object> lo = pubDate.getYearOrMonthOrDayOrSeasonOrMedlineDate();
+		for(Object o: lo) {
+		    if(o instanceof MedlineDate) return ((MedlineDate)o).getvalue().toString();
+		    if(o instanceof Year) {
+		        builder.append(((Year)o).getvalue().toString());
+	            builder.append(" ");
+		    }
+		    if(o instanceof Month) {
+                builder.append(((Month)o).getvalue().toString());
+                builder.append(" ");
+            }
+		    if(o instanceof Day) {
+                builder.append(((Day)o).getvalue().toString());
+                builder.append(" ");
+            }
 		}
 		return builder.toString();
 		
 	}
+	
 	public String getJournalPublicationInfoString(){
 		StringBuilder builder = new StringBuilder();
 		builder
@@ -362,23 +389,25 @@ public class ExternalPubmedArticle implements PublicationI {
 				.append(" Issue ")
 				.append(StringUtils.defaultString(this.getIssue()));
 		}
-		if (StringUtils.isNotEmpty(this.getPagination())){
+		/*
+		if (StringUtils.isNotEmpty(this.get.getPagination())){
 			builder
 				.append(" :")
 				.append(StringUtils.defaultString(this.getPagination()));
 		}
+		*/
 		return builder.toString();
 	}
 	public String getTitle(){
 		try {
-			return article.getMedlineCitation().getArticle().getArticleTitle().getContent();
+			return article.getMedlineCitation().getArticle().getArticleTitle().getvalue();
 		}catch (NullPointerException e){
 			return null;
 		}
 	}
 	public String getVolume(){
 		try {
-			return article.getMedlineCitation().getArticle().getJournal().getJournalIssue().getVolume().getContent();
+			return article.getMedlineCitation().getArticle().getJournal().getJournalIssue().getVolume();
 		}catch (NullPointerException e){
 			return null;
 		}
@@ -415,14 +444,14 @@ public class ExternalPubmedArticle implements PublicationI {
 			 return false;
 		 }
 		 for(PublicationType currentPubType : publicationTypes){
-			 if (currentPubType.getContent().toUpperCase().equals(thePublicationTypeName.toUpperCase())){
+			 if (currentPubType.getvalue().toUpperCase().equals(thePublicationTypeName.toUpperCase())){
 				 return true;
 			 }
 		 }
 		 return false;
 		
 	}
-	private List<PublicationType> getPublicationTypes(){
+	public List<PublicationType> getPublicationTypes(){
 		try {
 			return article.getMedlineCitation().getArticle().getPublicationTypeList().getPublicationType();
 		}catch(NullPointerException e){
@@ -433,10 +462,10 @@ public class ExternalPubmedArticle implements PublicationI {
 	public void getMeshTerms() {
 		List<MeshHeading> meshHeadings = article.getMedlineCitation().getMeshHeadingList().getMeshHeading();
 		for(MeshHeading meshHeading: meshHeadings) {
-			System.out.println("D: " + meshHeading.getDescriptorName().getContent()); 
+			System.out.println("D: " + meshHeading.getDescriptorName().getvalue()); 
 			List<QualifierName> qualifierNames = meshHeading.getQualifierName();
 			for(QualifierName qualifierName: qualifierNames) {
-				System.out.println("Q: " + qualifierName.getContent());
+				System.out.println("Q: " + qualifierName.getvalue());
 			}
 			
 		}
@@ -460,5 +489,9 @@ public class ExternalPubmedArticle implements PublicationI {
 	public void setSWANId(String swanId) {
 		this.swanId = swanId;
 	}
+    
+
+   
+
 
 }

@@ -17,17 +17,19 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.sax.SAXSource;
 
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.PubmedArticle;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.PubmedArticleSet;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.PubmedArticle;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.PubmedArticleSet;
 import org.annotopia.grails.connectors.plugin.pubmed.search.ESearchResult;
 import org.annotopia.grails.connectors.plugin.pubmed.search.Id;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
+
 
 /**
  * @author Paolo Ciccarese <paolo.ciccarese@gmail.com>
@@ -44,7 +46,7 @@ public class PubmedSearchAgent {
 	private static String SEARCH_PACKAGE_NAME = 
 		"org.annotopia.grails.connectors.plugin.pubmed.search";
 	private static String FETCH_PACKAGE_NAME = 
-		"org.annotopia.grails.connectors.plugin.pubmed.fetch";
+		"org.annotopia.grails.connectors.plugin.pubmed.dtd150101";
 	
 	private static JAXBContext searchJaxbContext = null;
 	private static Unmarshaller searchUnmarshaller = null;
@@ -166,10 +168,26 @@ public class PubmedSearchAgent {
 				connectionWithProxy.connect();
 				
 				SAXParserFactory spf = SAXParserFactory.newInstance();
-                spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false);
+                spf.setFeature(XMLConstants.ACCESS_EXTERNAL_DTD, false);
+                spf.setFeature("http://xml.org/sax/features/validation", false);
                 spf.setFeature("http://apache.org/xml/features/validation/schema", false);
                 spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-                XMLReader xmlReader = spf.newSAXParser().getXMLReader();
+                
+                
+                SAXParser parser = spf.newSAXParser();
+                parser.setProperty("http://javax.xml.XMLConstants/property/accessExternalDTD", "http");
+                
+                XMLReader xmlReader = parser.getXMLReader();
+                xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+                xmlReader.setFeature("http://javax.xml.XMLConstants/property/accessExternalDTD", false);
+                xmlReader.setFeature("http://xml.org/sax/features/validation", false);
+                
+                xmlReader.setProperty(XMLConstants.FEATURE_SECURE_PROCESSING, false);
+                xmlReader.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "all");
+                xmlReader.setProperty("http://javax.xml.XMLConstants/property/accessExternalDTD", "all");
+                xmlReader.setProperty("http://javax.xml.XMLConstants/property/accessExternalDTD", "http");
+                
 				
                 InputSource theInputSource = new InputSource((connectionWithProxy.getInputStream()));
                 
@@ -179,10 +197,41 @@ public class PubmedSearchAgent {
                 result = unmarshaller.unmarshal(source);
 			} else {
 				logger.info("No proxy detected");
-				InputStreamReader inputStreamReader = new InputStreamReader((new java.net.URL(url)).openStream(), "utf-8");
-				BufferedReader theReader = new BufferedReader(inputStreamReader);
-				InputSource theInputSource = new InputSource(theReader);
-				result = unmarshaller.unmarshal(theInputSource);
+				
+				SAXParserFactory spf = SAXParserFactory.newInstance();
+                //spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, false);
+                //spf.setFeature(XMLConstants.ACCESS_EXTERNAL_DTD, false);
+                spf.setFeature("http://xml.org/sax/features/validation", false);
+                spf.setFeature("http://apache.org/xml/features/validation/schema", false);
+                //spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+                
+                
+                SAXParser parser = spf.newSAXParser();
+                //parser.setProperty("http://javax.xml.XMLConstants/property/accessExternalDTD", "http");
+                
+                XMLReader xmlReader = parser.getXMLReader();
+                //xmlReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+                //xmlReader.setFeature("http://javax.xml.XMLConstants/property/accessExternalDTD", false);
+                xmlReader.setFeature("http://xml.org/sax/features/validation", false);
+                
+                //xmlReader.setProperty(XMLConstants.FEATURE_SECURE_PROCESSING, false);
+                //xmlReader.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "all");
+                //xmlReader.setProperty("http://javax.xml.XMLConstants/property/accessExternalDTD", "all");
+                //xmlReader.setProperty("http://javax.xml.XMLConstants/property/accessExternalDTD", "http");
+                
+                
+                InputStreamReader inputStreamReader = new InputStreamReader((new java.net.URL(url)).openStream(), "utf-8");
+                BufferedReader theReader = new BufferedReader(inputStreamReader);
+                InputSource theInputSource = new InputSource(theReader);
+                
+                SAXSource source = new SAXSource(xmlReader, theInputSource);
+				
+                logger.info("yolo") ;
+                
+				//InputStreamReader inputStreamReader = new InputStreamReader((new java.net.URL(url)).openStream(), "utf-8");
+				//BufferedReader theReader = new BufferedReader(inputStreamReader);
+				//InputSource theInputSource = new InputSource(theReader);
+				result = unmarshaller.unmarshal(source);
 			}
 		} catch (Exception e) {
 		    logger.error(e.getMessage());
@@ -210,22 +259,25 @@ public class PubmedSearchAgent {
 			PubmedSearchAgent agent = new PubmedSearchAgent();
 			PubmedArticleSet articleSet = agent.fetch(query, 20, 0);
 
-			List<PubmedArticle> docs = articleSet.getPubmedArticle();
+			List<Object> docs = articleSet.getPubmedArticleOrPubmedBookArticle();
 			PubmedArticle pubmedArticle = null;
-			ListIterator<PubmedArticle> it = docs.listIterator();
+			ListIterator<Object> it = docs.listIterator();
 			logger.info("count = " + docs.size());
 
+			// TODO Abstract
+			/*
 			while (it.hasNext()) {
 				pubmedArticle = (PubmedArticle) it.next();
 				String abst = "";
 				try {
 					abst = pubmedArticle.getMedlineCitation().getArticle()
-							.getAbstract().getAbstractText().getContent();
+							.getAbstract().getAbstractText().;
 				} catch (NullPointerException e) {
 
 				}
 				logger.info(abst);
 			}
+			*/
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

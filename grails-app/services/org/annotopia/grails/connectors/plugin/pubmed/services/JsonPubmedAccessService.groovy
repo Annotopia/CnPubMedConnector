@@ -22,12 +22,13 @@ package org.annotopia.grails.connectors.plugin.pubmed.services
 
 
 
+
 import org.annotopia.grails.connectors.IBibliographyService
 import org.annotopia.grails.connectors.plugin.pubmed.dataaccess.ExternalPubmedArticle
 import org.annotopia.grails.connectors.plugin.pubmed.dataaccess.IPubmedArticleManager
 import org.annotopia.grails.connectors.plugin.pubmed.dataaccess.PubmedArticleManagerImpl
 import org.annotopia.grails.connectors.plugin.pubmed.dataaccess.ExternalPubmedArticle.ExternalAuthor
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.PublicationType
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.PublicationType
 import org.codehaus.groovy.grails.web.json.JSONArray
 import org.codehaus.groovy.grails.web.json.JSONObject
 
@@ -232,50 +233,51 @@ class JsonPubmedAccessService implements IBibliographyService {
    private JSONObject convertExternalPubmedArticle(ExternalPubmedArticle epa) {
 	   
 	   try {
-		   JSONObject pubmedArticle = new JSONObject();
-		   pubmedArticle.put("id", epa.getId());
-		   pubmedArticle.put("url", "http://www.ncbi.nlm.nih.gov/pubmed/" + epa.getAuthoritativeId());
-		   pubmedArticle.put("title", epa.getTitle());
-		   pubmedArticle.put("source", 'http://dbpedia.org/resource/PubMed');
-		   pubmedArticle.put("type", epa.getOntologyType());
-		   pubmedArticle.put("pmid", epa.getAuthoritativeId());
-		   pubmedArticle.put("pmcid", epa.getPMC());
-		   pubmedArticle.put("doi", epa.getDOI());
-		   pubmedArticle.put("publicationAuthors", epa.getAuthorNamesString());
-		   pubmedArticle.put("publicationInfo", epa.getJournalPublicationInfoString());
-		   pubmedArticle.put("publicationDate", epa.getPublicationDateString());
-		   pubmedArticle.put("journalName",epa.getJournalName());
-		   pubmedArticle.put("journalIssn", epa.getISSN());
-		 
-		   
-		   JSONArray pubmedArticleTypes = new JSONArray();
-		   List<PublicationType> types = epa.getPublicationTypes();
-		   for(PublicationType type: types) {
-			   if(type.getContent().trim().equals("Journal Article") || type.getContent().trim().equals("Letter")) {
-				   pubmedArticleTypes.add("Journal Article");
-				   //break;
-			   } else {
-				   pubmedArticleTypes.add("Other type");
-			   }
-		   }
-		   pubmedArticle.put("types", pubmedArticleTypes);
-		   
-		   JSONArray authorNamesList = new JSONArray();
-		   List<ExternalAuthor> authors = epa.getHasAuthors();
-		   for(ExternalAuthor author: authors) {
-			   JSONObject personName = new JSONObject();
-			   personName.put("firstName", author.getFirstName());
-			   personName.put("middleName", author.getMiddlename());
-			   personName.put("lastName", author.getSurname());
-			   personName.put("fullName", author.getFullname());
-			   authorNamesList.add(personName);
-		   }
-		   
-		   pubmedArticle.put("authorNames", authorNamesList);
-		   return pubmedArticle;
-	   } catch (Exception e) {
-		   log.error "Error: ${e.message}", e
-		   return null;
-	   }
+           JSONObject pubmedArticle = new JSONObject();
+           pubmedArticle.put("id", epa.getId());
+           pubmedArticle.put("url", "http://www.ncbi.nlm.nih.gov/pubmed/" + epa.getAuthoritativeId());
+           pubmedArticle.put("title", epa.getTitle());
+           pubmedArticle.put("source", "http://dbpedia.org/resource/PubMed");
+           pubmedArticle.put("type", epa.getOntologyType());
+           pubmedArticle.put("pmid", epa.getAuthoritativeId());
+           pubmedArticle.put("pmcid", epa.getPMC());
+           pubmedArticle.put("doi", epa.getDOI());
+           pubmedArticle.put("publicationAuthors", epa.getAuthorNamesString());
+           pubmedArticle.put("publicationInfo", epa.getJournalPublicationInfoString());
+           pubmedArticle.put("publicationDate", epa.getPublicationDateString());
+           pubmedArticle.put("journalName",epa.getJournalName());
+           pubmedArticle.put("journalIssn", epa.getISSN());
+           
+           JSONArray pubmedArticleTypes = new JSONArray();
+           List<PublicationType> types = epa.getPublicationTypes();
+           for(PublicationType type: types) {
+               if(type.getvalue().toString().trim().equals("Journal Article") || type.getvalue().toString().trim().equals("Letter")) {
+                   pubmedArticleTypes.add("Journal Article");
+                   //break;
+               } else {
+                   pubmedArticleTypes.add("Other type");
+               }
+           }
+           pubmedArticle.put("types", pubmedArticleTypes);
+          
+                  
+           JSONArray authorNamesList = new JSONArray();
+           List<ExternalAuthor> authors = epa.getHasAuthors();
+           for(ExternalAuthor author: authors) {
+               JSONObject personName = new JSONObject();
+               personName.put("firstName", author.getFirstName());
+               personName.put("lastName", author.getSurname());
+               personName.put("fullName", author.getFullname());
+               authorNamesList.add(personName);
+           }
+
+           
+           pubmedArticle.put("authorNames", authorNamesList);
+           return pubmedArticle;
+       } catch (Exception e) {
+	   log.error "Error: ${e.message}", e
+           e.printStackTrace();
+           return null;
+       }
    }
 }

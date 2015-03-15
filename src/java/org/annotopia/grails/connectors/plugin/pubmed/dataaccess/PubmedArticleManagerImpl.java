@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.PubmedArticle;
-import org.annotopia.grails.connectors.plugin.pubmed.fetch.PubmedArticleSet;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.PubmedArticle;
+import org.annotopia.grails.connectors.plugin.pubmed.dtd150101.PubmedArticleSet;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -168,11 +168,12 @@ public class PubmedArticleManagerImpl implements IPubmedArticleManager {
 	 */
 	private List<ExternalPubmedArticle> convertToExternalPubmedArticles(PubmedArticleSet records) {
 		List<ExternalPubmedArticle> articles = new ArrayList<ExternalPubmedArticle>();
-		for(PubmedArticle currentArticle : records.getPubmedArticle()){
+		for(Object currentArticle : records.getPubmedArticleOrPubmedBookArticle()){
 			if (currentArticle == null){
 				articles.add(null);
 			} else {
-				articles.add(new ExternalPubmedArticle(currentArticle));
+			    if(currentArticle instanceof PubmedArticle) 
+				articles.add(new ExternalPubmedArticle((PubmedArticle)currentArticle));
 			}
 		}
 		return articles;

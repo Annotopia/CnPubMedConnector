@@ -51,8 +51,8 @@ class PubmedController extends BaseConnectorController {
 	 * curl -i -X GET http://localhost:8090/cn/pubmed/entry -d'{"apiKey":"164bb0e0-248f-11e4-8c21-0800200c9a66","typeQuery":"dois","textQuery":"10.1016/j.nbd.2007.04.009"}'
 	 */
 	def entry = {
-		long startTime = System.currentTimeMillis();
-		
+		long startTime = System.currentTimeMillis();	
+
 		// retrieve the API key
 		def apiKey = retrieveApiKey(startTime);
 		if(!apiKey) {
@@ -102,7 +102,7 @@ class PubmedController extends BaseConnectorController {
 	 */
 	def entries = {	
 		long startTime = System.currentTimeMillis();
-		
+
 		// retrieve the API key
 		def apiKey = retrieveApiKey(startTime);
 		if(!apiKey) {
